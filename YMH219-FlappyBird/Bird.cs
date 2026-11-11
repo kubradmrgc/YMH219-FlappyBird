@@ -9,6 +9,7 @@ public class Bird
     private const float Gravity = 0.45f;
     private const float FlapVelocity = -7.5f;
     private const float MaxFallSpeed = 10f;
+    private const float HitboxMargin = 4f;
 
     public Bird(float x, float y)
     {
@@ -21,6 +22,8 @@ public class Bird
     public float VelocityY { get; private set; }
 
     public RectangleF Bounds => new(X, Y, Diameter, Diameter);
+
+    public RectangleF Hitbox => RectangleF.Inflate(Bounds, -HitboxMargin, -HitboxMargin);
 
     public float Tilt => Math.Clamp(VelocityY * 4f, -25f, 70f);
 

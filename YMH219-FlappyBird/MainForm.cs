@@ -11,7 +11,8 @@ public class MainForm : Form
     private readonly GamePanel gamePanel;
     private readonly System.Windows.Forms.Timer gameTimer = new() { Interval = FrameIntervalMs };
     private readonly StatusStrip statusStrip = new() { SizingGrip = false };
-    private readonly ToolStripStatusLabel stateLabel = new() { Text = "Space / Yukarı Ok: zıpla" };
+    private readonly ToolStripStatusLabel scoreLabel = new();
+    private readonly ToolStripStatusLabel stateLabel = new() { Spring = true, TextAlign = ContentAlignment.MiddleRight };
 
     public MainForm()
     {
@@ -23,13 +24,17 @@ public class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         KeyPreview = true;
 
-        statusStrip.Items.Add(stateLabel);
+        statusStrip.Items.AddRange(new ToolStripItem[] { scoreLabel, stateLabel });
 
         Controls.Add(gamePanel);
         Controls.Add(statusStrip);
 
+        session.ScoreChanged += (_, _) => UpdateStatusBar();
+        session.StateChanged += (_, _) => UpdateStatusBar();
         gameTimer.Tick += GameTimer_Tick;
         KeyDown += MainForm_KeyDown;
+
+        UpdateStatusBar();
     }
 
     protected override void OnLoad(EventArgs e)
@@ -53,6 +58,17 @@ public class MainForm : Form
             session.Flap();
             e.SuppressKeyPress = true;
         }
+    }
+
+    private void UpdateStatusBar()
+    {
+        scoreLabel.Text = $"Skor: {session.Score}";
+        stateLabel.Text = session.State switch
+        {
+            GameState.Ready => "Hazır - Space / Yukarı Ok ile başla",
+            GameState.Playing => "Oynanıyor",
+            _ => "Oyun bitti"
+        };
     }
 
     protected override void Dispose(bool disposing)

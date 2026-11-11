@@ -8,7 +8,7 @@ public enum GameState
 }
 
 /// <summary>
-/// Oyunun durumunu, hızını ve oyun nesnelerini yöneten sınıf.
+/// Oyunun durumunu, skorunu, hızını ve oyun nesnelerini yöneten sınıf.
 /// </summary>
 public class GameSession
 {
@@ -32,8 +32,12 @@ public class GameSession
         Reset();
     }
 
+    public event EventHandler? ScoreChanged;
+    public event EventHandler? StateChanged;
+
     public Bird Bird { get; }
     public GameState State { get; private set; }
+    public int Score { get; private set; }
     public float Speed { get; private set; }
     public float GroundOffset { get; private set; }
     public IReadOnlyList<Pipe> Pipes => pipes;
@@ -46,13 +50,16 @@ public class GameSession
         Bird.Reset(BirdStartY);
         Speed = StartSpeed;
         GroundOffset = 0;
-        State = GameState.Ready;
 
         pipes.Clear();
         for (int i = 0; i < PipeCount; i++)
         {
             pipes.Add(new Pipe(FirstPipeX + i * PipeSpacing, RandomGapTop(), GroundTop));
         }
+
+        Score = 0;
+        ScoreChanged?.Invoke(this, EventArgs.Empty);
+        SetState(GameState.Ready);
     }
 
     public void Flap()
@@ -64,7 +71,7 @@ public class GameSession
 
         if (State == GameState.Ready)
         {
-            State = GameState.Playing;
+            SetState(GameState.Playing);
         }
 
         Bird.Flap();
@@ -85,12 +92,13 @@ public class GameSession
         }
 
         Bird.Update();
-        if (Bird.Bounds.Bottom >= GroundTop)
-        {
-            Bird.LandOn(GroundTop);
-        }
-
         MovePipes();
+        UpdateScore();
+
+        if (HasCollision())
+        {
+            SetState(GameState.GameOver);
+        }
     }
 
     private void MovePipes()
@@ -105,6 +113,34 @@ public class GameSession
             float rightmostX = pipes.Max(p => p.X);
             pipe.Reposition(rightmostX + PipeSpacing, RandomGapTop());
         }
+    }
+
+    private void UpdateScore()
+    {
+        foreach (Pipe pipe in pipes.Where(p => !p.Passed && p.Right < Bird.X))
+        {
+            pipe.MarkPassed();
+            Score++;
+            ScoreChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private bool HasCollision()
+    {
+        if (Bird.Bounds.Bottom >= GroundTop)
+        {
+            Bird.LandOn(GroundTop);
+            return true;
+        }
+
+        RectangleF hitbox = Bird.Hitbox;
+        return pipes.Any(p => p.CollidesWith(hitbox));
+    }
+
+    private void SetState(GameState state)
+    {
+        State = state;
+        StateChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private int RandomGapTop()

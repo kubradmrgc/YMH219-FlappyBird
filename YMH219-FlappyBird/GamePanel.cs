@@ -34,11 +34,29 @@ public class GamePanel : Panel
         DrawGround(g);
         DrawBird(g, session.Bird);
 
-        if (session.State == GameState.Ready)
+        switch (session.State)
         {
-            DrawCenteredText(g, "Flappy Bird", titleFont, GameSession.FieldHeight / 4f);
-            DrawCenteredText(g, "Başlamak için Space / Yukarı Ok", infoFont, GameSession.FieldHeight / 4f + 60);
+            case GameState.Ready:
+                DrawCenteredText(g, "Flappy Bird", titleFont, GameSession.FieldHeight / 4f);
+                DrawCenteredText(g, "Başlamak için Space / Yukarı Ok", infoFont, GameSession.FieldHeight / 4f + 60);
+                break;
+            case GameState.Playing:
+                DrawCenteredText(g, session.Score.ToString(), titleFont, 60);
+                break;
+            case GameState.GameOver:
+                DrawGameOver(g);
+                break;
         }
+    }
+
+    private void DrawGameOver(Graphics g)
+    {
+        var box = new RectangleF(60, 150, GameSession.FieldWidth - 120, 200);
+        using var background = new SolidBrush(Color.FromArgb(170, 0, 0, 0));
+        g.FillRectangle(background, box);
+
+        DrawCenteredText(g, "Game Over", titleFont, box.Top + 55);
+        DrawCenteredText(g, $"Skor: {session.Score}", infoFont, box.Top + 120);
     }
 
     private void DrawGround(Graphics g)

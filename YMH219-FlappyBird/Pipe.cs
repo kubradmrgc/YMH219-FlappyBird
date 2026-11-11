@@ -20,6 +20,7 @@ public class Pipe
     public float X { get; private set; }
     public int GapTop { get; private set; }
     public int GapBottom => GapTop + GapHeight;
+    public bool Passed { get; private set; }
     public float Right => X + Width;
     public bool IsOffScreen => Right < 0;
 
@@ -35,5 +36,16 @@ public class Pipe
     {
         X = x;
         GapTop = gapTop;
+        Passed = false;
+    }
+
+    public void MarkPassed()
+    {
+        Passed = true;
+    }
+
+    public bool CollidesWith(RectangleF area)
+    {
+        return area.IntersectsWith(TopRect) || area.IntersectsWith(BottomRect);
     }
 }
