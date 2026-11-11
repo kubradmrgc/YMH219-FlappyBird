@@ -18,6 +18,9 @@ public class GameSession
     public const int GroundStripeWidth = 24;
     private const float BirdStartX = 110f;
     private const float StartSpeed = 3f;
+    private const float SpeedStep = 0.5f;
+    private const float MaxSpeed = 5f;
+    private const int PointsPerLevel = 5;
     private const int PipeCount = 3;
     private const float PipeSpacing = 240f;
     private const float FirstPipeX = FieldWidth + 60f;
@@ -26,8 +29,9 @@ public class GameSession
     private readonly List<Pipe> pipes = new();
     private readonly Random random = new();
 
-    public GameSession()
+    public GameSession(int highScore = 0)
     {
+        HighScore = Math.Max(0, highScore);
         Bird = new Bird(BirdStartX, BirdStartY);
         Reset();
     }
@@ -38,6 +42,9 @@ public class GameSession
     public Bird Bird { get; }
     public GameState State { get; private set; }
     public int Score { get; private set; }
+    public int HighScore { get; private set; }
+    public bool IsNewHighScore { get; private set; }
+    public int Level => Score / PointsPerLevel + 1;
     public float Speed { get; private set; }
     public float GroundOffset { get; private set; }
     public IReadOnlyList<Pipe> Pipes => pipes;
@@ -58,6 +65,7 @@ public class GameSession
         }
 
         Score = 0;
+        IsNewHighScore = false;
         ScoreChanged?.Invoke(this, EventArgs.Empty);
         SetState(GameState.Ready);
     }
@@ -97,8 +105,19 @@ public class GameSession
 
         if (HasCollision())
         {
-            SetState(GameState.GameOver);
+            EndGame();
         }
+    }
+
+    private void EndGame()
+    {
+        if (Score > HighScore)
+        {
+            HighScore = Score;
+            IsNewHighScore = true;
+        }
+
+        SetState(GameState.GameOver);
     }
 
     private void MovePipes()
@@ -121,6 +140,11 @@ public class GameSession
         {
             pipe.MarkPassed();
             Score++;
+            if (Score % PointsPerLevel == 0)
+            {
+                Speed = Math.Min(Speed + SpeedStep, MaxSpeed);
+            }
+
             ScoreChanged?.Invoke(this, EventArgs.Empty);
         }
     }

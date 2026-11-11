@@ -7,16 +7,20 @@ public class MainForm : Form
 {
     private const int FrameIntervalMs = 20;
 
-    private readonly GameSession session = new();
+    private readonly HighScoreStore highScoreStore = HighScoreStore.CreateDefault();
+    private readonly GameSession session;
     private readonly GamePanel gamePanel;
     private readonly System.Windows.Forms.Timer gameTimer = new() { Interval = FrameIntervalMs };
     private readonly ToolStrip toolStrip = new() { GripStyle = ToolStripGripStyle.Hidden };
     private readonly StatusStrip statusStrip = new() { SizingGrip = false };
     private readonly ToolStripStatusLabel scoreLabel = new();
+    private readonly ToolStripStatusLabel highScoreLabel = new();
+    private readonly ToolStripStatusLabel speedLabel = new();
     private readonly ToolStripStatusLabel stateLabel = new() { Spring = true, TextAlign = ContentAlignment.MiddleRight };
 
     public MainForm()
     {
+        session = new GameSession(highScoreStore.Load());
         gamePanel = new GamePanel(session) { Dock = DockStyle.Fill };
 
         Text = "YMH219 - Flappy Bird";
@@ -28,14 +32,14 @@ public class MainForm : Form
         var newGameButton = new ToolStripButton("Yeni Oyun (R)");
         newGameButton.Click += (_, _) => StartNewGame();
         toolStrip.Items.Add(newGameButton);
-        statusStrip.Items.AddRange(new ToolStripItem[] { scoreLabel, stateLabel });
+        statusStrip.Items.AddRange(new ToolStripItem[] { scoreLabel, highScoreLabel, speedLabel, stateLabel });
 
         Controls.Add(gamePanel);
         Controls.Add(toolStrip);
         Controls.Add(statusStrip);
 
         session.ScoreChanged += (_, _) => UpdateStatusBar();
-        session.StateChanged += (_, _) => UpdateStatusBar();
+        session.StateChanged += Session_StateChanged;
         gameTimer.Tick += GameTimer_Tick;
         KeyDown += MainForm_KeyDown;
 
@@ -78,14 +82,31 @@ public class MainForm : Form
         gamePanel.Invalidate();
     }
 
+    private void Session_StateChanged(object? sender, EventArgs e)
+    {
+        UpdateStatusBar();
+
+        if (session.State == GameState.GameOver && session.IsNewHighScore && !highScoreStore.TrySave(session.HighScore))
+        {
+            gamePanel.Invalidate();
+            MessageBox.Show(
+                $"En yüksek skor kaydedilemedi:\n{highScoreStore.FilePath}",
+                "Kayıt Hatası",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+        }
+    }
+
     private void UpdateStatusBar()
     {
         scoreLabel.Text = $"Skor: {session.Score}";
+        highScoreLabel.Text = $"En Yüksek: {session.HighScore}";
+        speedLabel.Text = $"Seviye: {session.Level} (Hız {session.Speed:0.0})";
         stateLabel.Text = session.State switch
         {
-            GameState.Ready => "Hazır - Space / Yukarı Ok ile başla",
+            GameState.Ready => "Hazır",
             GameState.Playing => "Oynanıyor",
-            _ => "Oyun bitti - R ile yeniden başlat"
+            _ => "Oyun bitti"
         };
     }
 

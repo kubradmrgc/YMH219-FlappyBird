@@ -51,13 +51,18 @@ public class GamePanel : Panel
 
     private void DrawGameOver(Graphics g)
     {
-        var box = new RectangleF(60, 150, GameSession.FieldWidth - 120, 200);
+        var box = new RectangleF(60, 140, GameSession.FieldWidth - 120, 240);
         using var background = new SolidBrush(Color.FromArgb(170, 0, 0, 0));
         g.FillRectangle(background, box);
 
         DrawCenteredText(g, "Game Over", titleFont, box.Top + 55);
-        DrawCenteredText(g, $"Skor: {session.Score}", infoFont, box.Top + 120);
-        DrawCenteredText(g, "Tekrar için R / Yeni Oyun", infoFont, box.Top + 160);
+        DrawCenteredText(g, $"Skor: {session.Score}   En Yüksek: {session.HighScore}", infoFont, box.Top + 115);
+        if (session.IsNewHighScore)
+        {
+            DrawCenteredText(g, "Yeni rekor!", infoFont, box.Top + 150);
+        }
+
+        DrawCenteredText(g, "Tekrar için R / Yeni Oyun", infoFont, box.Top + 200);
     }
 
     private void DrawGround(Graphics g)
