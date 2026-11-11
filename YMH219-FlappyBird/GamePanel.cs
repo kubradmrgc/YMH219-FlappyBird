@@ -26,6 +26,11 @@ public class GamePanel : Panel
         Graphics g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
 
+        foreach (Pipe pipe in session.Pipes)
+        {
+            DrawPipe(g, pipe);
+        }
+
         DrawGround(g);
         DrawBird(g, session.Bird);
 
@@ -49,6 +54,32 @@ public class GamePanel : Panel
         {
             g.FillRectangle(stripe, x, top, GameSession.GroundStripeWidth / 2f, GrassHeight);
         }
+    }
+
+    private static void DrawPipe(Graphics g, Pipe pipe)
+    {
+        DrawPipePart(g, pipe.TopRect, capAtBottom: true);
+        DrawPipePart(g, pipe.BottomRect, capAtBottom: false);
+    }
+
+    private static void DrawPipePart(Graphics g, RectangleF body, bool capAtBottom)
+    {
+        const float capHeight = 26f;
+        const float capOverhang = 4f;
+
+        using var fill = new SolidBrush(Color.FromArgb(116, 191, 46));
+        using var shine = new SolidBrush(Color.FromArgb(158, 228, 89));
+        using var border = new Pen(Color.FromArgb(84, 56, 71), 2f);
+
+        g.FillRectangle(fill, body);
+        g.FillRectangle(shine, body.X + 8, body.Y, 8, body.Height);
+        g.DrawRectangle(border, body.X, body.Y, body.Width, body.Height);
+
+        float capY = capAtBottom ? body.Bottom - capHeight : body.Top;
+        var cap = new RectangleF(body.X - capOverhang, capY, body.Width + 2 * capOverhang, capHeight);
+        g.FillRectangle(fill, cap);
+        g.FillRectangle(shine, cap.X + 8, cap.Y, 8, cap.Height);
+        g.DrawRectangle(border, cap.X, cap.Y, cap.Width, cap.Height);
     }
 
     private static void DrawBird(Graphics g, Bird bird)
