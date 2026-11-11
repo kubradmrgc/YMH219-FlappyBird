@@ -14,7 +14,7 @@ Nesne Tabanlı Programlama (YMH 219) dersi için Windows Forms ile geliştirilen
 1. Windows üzerinde [.NET 9 SDK](https://dotnet.microsoft.com/download) kurulu olmalıdır.
 2. Depoyu klonlayın:
    ```bash
-   git clone https://github.com/<kullanici-adi>/YMH219-FlappyBird.git
+   git clone https://github.com/kubradmrgc/YMH219-FlappyBird.git
    cd YMH219-FlappyBird
    ```
 3. Uygulamayı çalıştırın:
@@ -53,8 +53,6 @@ Nesne Tabanlı Programlama (YMH 219) dersi için Windows Forms ile geliştirilen
 | `HighScoreStore` | En yüksek skoru dosyadan okur ve dosyaya yazar |
 
 ## Ekran Görüntüleri
-
-<!-- Ekran görüntülerini docs/screenshots klasörüne aşağıdaki adlarla ekleyin. -->
 
 | Oyun ekranı | Oyun sonu |
 | --- | --- |
