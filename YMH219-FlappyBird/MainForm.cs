@@ -1,19 +1,22 @@
 namespace FlappyBird;
 
 /// <summary>
-/// Ana pencere: oyun alanını barındırır ve Timer ile oyun döngüsünü çalıştırır.
+/// Ana pencere: oyun alanını barındırır, Timer ile oyun döngüsünü çalıştırır ve klavyeyi dinler.
 /// </summary>
 public class MainForm : Form
 {
     private const int FrameIntervalMs = 20;
 
-    private readonly GamePanel gamePanel = new() { Dock = DockStyle.Fill };
+    private readonly GameSession session = new();
+    private readonly GamePanel gamePanel;
     private readonly System.Windows.Forms.Timer gameTimer = new() { Interval = FrameIntervalMs };
     private readonly StatusStrip statusStrip = new() { SizingGrip = false };
-    private readonly ToolStripStatusLabel stateLabel = new() { Text = "Hazır - oyun döngüsü çalışıyor" };
+    private readonly ToolStripStatusLabel stateLabel = new() { Text = "Space / Yukarı Ok: zıpla" };
 
     public MainForm()
     {
+        gamePanel = new GamePanel(session) { Dock = DockStyle.Fill };
+
         Text = "YMH219 - Flappy Bird";
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
@@ -26,20 +29,30 @@ public class MainForm : Form
         Controls.Add(statusStrip);
 
         gameTimer.Tick += GameTimer_Tick;
+        KeyDown += MainForm_KeyDown;
     }
 
     protected override void OnLoad(EventArgs e)
     {
         base.OnLoad(e);
-        ClientSize = new Size(GamePanel.FieldWidth, GamePanel.FieldHeight + statusStrip.Height);
+        ClientSize = new Size(GameSession.FieldWidth, GameSession.FieldHeight + statusStrip.Height);
         CenterToScreen();
         gameTimer.Start();
     }
 
     private void GameTimer_Tick(object? sender, EventArgs e)
     {
-        gamePanel.Advance();
+        session.Update();
         gamePanel.Invalidate();
+    }
+
+    private void MainForm_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Space or Keys.Up)
+        {
+            session.Flap();
+            e.SuppressKeyPress = true;
+        }
     }
 
     protected override void Dispose(bool disposing)
