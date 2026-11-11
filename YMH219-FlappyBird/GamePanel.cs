@@ -57,6 +57,7 @@ public class GamePanel : Panel
 
         DrawCenteredText(g, "Game Over", titleFont, box.Top + 55);
         DrawCenteredText(g, $"Skor: {session.Score}", infoFont, box.Top + 120);
+        DrawCenteredText(g, "Tekrar için R / Yeni Oyun", infoFont, box.Top + 160);
     }
 
     private void DrawGround(Graphics g)

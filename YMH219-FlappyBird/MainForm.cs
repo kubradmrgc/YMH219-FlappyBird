@@ -10,6 +10,7 @@ public class MainForm : Form
     private readonly GameSession session = new();
     private readonly GamePanel gamePanel;
     private readonly System.Windows.Forms.Timer gameTimer = new() { Interval = FrameIntervalMs };
+    private readonly ToolStrip toolStrip = new() { GripStyle = ToolStripGripStyle.Hidden };
     private readonly StatusStrip statusStrip = new() { SizingGrip = false };
     private readonly ToolStripStatusLabel scoreLabel = new();
     private readonly ToolStripStatusLabel stateLabel = new() { Spring = true, TextAlign = ContentAlignment.MiddleRight };
@@ -24,9 +25,13 @@ public class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         KeyPreview = true;
 
+        var newGameButton = new ToolStripButton("Yeni Oyun (R)");
+        newGameButton.Click += (_, _) => StartNewGame();
+        toolStrip.Items.Add(newGameButton);
         statusStrip.Items.AddRange(new ToolStripItem[] { scoreLabel, stateLabel });
 
         Controls.Add(gamePanel);
+        Controls.Add(toolStrip);
         Controls.Add(statusStrip);
 
         session.ScoreChanged += (_, _) => UpdateStatusBar();
@@ -40,7 +45,7 @@ public class MainForm : Form
     protected override void OnLoad(EventArgs e)
     {
         base.OnLoad(e);
-        ClientSize = new Size(GameSession.FieldWidth, GameSession.FieldHeight + statusStrip.Height);
+        ClientSize = new Size(GameSession.FieldWidth, toolStrip.Height + GameSession.FieldHeight + statusStrip.Height);
         CenterToScreen();
         gameTimer.Start();
     }
@@ -53,11 +58,24 @@ public class MainForm : Form
 
     private void MainForm_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.KeyCode is Keys.Space or Keys.Up)
+        switch (e.KeyCode)
         {
-            session.Flap();
-            e.SuppressKeyPress = true;
+            case Keys.Space:
+            case Keys.Up:
+                session.Flap();
+                e.SuppressKeyPress = true;
+                break;
+            case Keys.R:
+                StartNewGame();
+                e.SuppressKeyPress = true;
+                break;
         }
+    }
+
+    private void StartNewGame()
+    {
+        session.Reset();
+        gamePanel.Invalidate();
     }
 
     private void UpdateStatusBar()
@@ -67,7 +85,7 @@ public class MainForm : Form
         {
             GameState.Ready => "Hazır - Space / Yukarı Ok ile başla",
             GameState.Playing => "Oynanıyor",
-            _ => "Oyun bitti"
+            _ => "Oyun bitti - R ile yeniden başlat"
         };
     }
 
